@@ -4,7 +4,6 @@
 //
 //  Created by Muhammad Haroon on 03/07/2025.
 //
-
 #include <metal_stdlib>
 #include "OperationShaderTypes.h"
 using namespace metal;
@@ -13,23 +12,25 @@ typedef struct {
     float intensity;
 } IntensityUniform;
 
-half2 computeSliceOffset(float slice, float slicesPerRow, half2 sliceSize) {
-    return sliceSize * half2(fmod(slice, slicesPerRow), floor(slice / slicesPerRow));
+float2 computeSliceOffset(float slice, float slicesPerRow, float2 sliceSize) {
+    return sliceSize * float2(fmod(slice, slicesPerRow), floor(slice / slicesPerRow));
 }
 
 half4 sampleAs3DTexture(half3 textureColor, float size, float numRows, float slicesPerRow,
                         texture2d<half> lutTexture, sampler lutSampler) {
-    float slice = textureColor.z * 63.0;  // 64 slices (0-63)
+    float slice = float(textureColor.z) * 63.0;  // 64 slices (0-63)
     float zOffset = fract(slice);
     
-    half2 sliceSize = half2(1.0 / slicesPerRow, 1.0 / numRows);
-    half2 slice0Offset = computeSliceOffset(floor(slice), slicesPerRow, sliceSize);
-    half2 slice1Offset = computeSliceOffset(ceil(slice), slicesPerRow, sliceSize);
+    float2 sliceSize = float2(1.0 / slicesPerRow, 1.0 / numRows);
+    float2 slice0Offset = computeSliceOffset(floor(slice), slicesPerRow, sliceSize);
+    float2 slice1Offset = computeSliceOffset(ceil(slice), slicesPerRow, sliceSize);
     
-    half2 slicePixelSize = sliceSize / size;
-    half2 sliceInnerSize = slicePixelSize * (size - 1.0);
+    float2 slicePixelSize = sliceSize / size;
+    float2 sliceInnerSize = slicePixelSize * (size - 1.0);
     
-    half2 uv = slicePixelSize * 0.5h + textureColor.xy * sliceInnerSize;
+    // Convert to float2 for texture sampling
+    float2 uv = slicePixelSize * 0.5 + float2(textureColor.xy) * sliceInnerSize;
+    
     half4 slice0Color = lutTexture.sample(lutSampler, slice0Offset + uv);
     half4 slice1Color = lutTexture.sample(lutSampler, slice1Offset + uv);
     return mix(slice0Color, slice1Color, half(zOffset));
