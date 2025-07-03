@@ -83,7 +83,9 @@ public class MovieInput: ImageSource {
                     }
 
                     while self.assetReader.status == .reading {
-                        self.readNextVideoFrame(from: readerVideoTrackOutput!)
+                        autoreleasepool {
+                            self.readNextVideoFrame(from: readerVideoTrackOutput!)
+                        }
                     }
 
                     if self.assetReader.status == .completed {
@@ -160,7 +162,9 @@ public class MovieInput: ImageSource {
         let movieFrame = CMSampleBufferGetImageBuffer(frame)!
 
         //        processingFrameTime = currentSampleTime
-        self.process(movieFrame: movieFrame, withSampleTime: currentSampleTime)
+        autoreleasepool {
+            self.process(movieFrame: movieFrame, withSampleTime: currentSampleTime)
+        }
     }
 
     func process(movieFrame: CVPixelBuffer, withSampleTime: CMTime) {
