@@ -18,7 +18,7 @@ float2 computeSliceOffset(float slice, float slicesPerRow, float2 sliceSize) {
 
 half4 sampleAs3DTexture(half3 textureColor, float size, float numRows, float slicesPerRow,
                         texture2d<half> lutTexture, sampler lutSampler) {
-    float slice = float(textureColor.z) * 63.0;  // 64 slices (0-63)
+    float slice = float(textureColor.z) * 511.0;  // 64 slices (0-63)
     float zOffset = fract(slice);
     
     float2 sliceSize = float2(1.0 / slicesPerRow, 1.0 / numRows);
@@ -46,7 +46,7 @@ fragment half4 haldFragment(TwoInputVertexIO fragmentInput [[stage_in]],
     
     // Clamp and process color using 3D LUT
     half3 clampedColor = clamp(base.rgb, 0.0h, 1.0h);
-    half4 newColor = sampleAs3DTexture(clampedColor, 64.0, 8.0, 8.0, inputTexture2, quadSampler);
+    half4 newColor = sampleAs3DTexture(clampedColor, 8.0, 64.0, 8.0, inputTexture2, quadSampler);
     
     // Mix with original based on intensity
     return mix(base, half4(newColor.rgb, base.a), half(uniform.intensity));
